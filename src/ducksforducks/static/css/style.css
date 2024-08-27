@@ -21,3 +21,10 @@ a.external-link::after {
 .text {
     margin-top: 2em;
 }
+
+pre {
+    background-color: #f4f4f4;
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+}
