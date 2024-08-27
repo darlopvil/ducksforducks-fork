@@ -94,6 +94,14 @@ def article_page(path):
 
 
 def get_content(soup: BeautifulSoup) -> BeautifulSoup:
+    """Extracts the article content from the soup.
+
+    Args:
+        soup (BeautifulSoup): The soup of the article page.
+
+    Returns:
+        BeautifulSoup: The article content.
+    """
     article_content = soup.find("div", {"class": "a-wrapper"}).find("article")
 
     for img in article_content.find_all("img"):
@@ -107,9 +115,13 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
             ad.decompose()
 
     for link in article_content.find_all("a"):
-        if link.get("href") and link["href"].startswith("https://www.geeksforgeeks.org/"):
+        if link.get("href") and link["href"].startswith(
+            "https://www.geeksforgeeks.org/"
+        ):
             if not link["href"].startswith("https://www.geeksforgeeks.org/user/"):
-                link["href"] = f"/{link['href'].replace('https://www.geeksforgeeks.org/', '')}"
+                link["href"] = (
+                    f"/{link['href'].replace('https://www.geeksforgeeks.org/', '')}"
+                )
 
             else:
                 classes = link.get("class", [])
@@ -125,6 +137,7 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
 
 
 def main():
+    """Runs the app."""
     port = int(os.getenv("PORT", 8113))
     debug = bool(os.getenv("DEBUG", False))
     app.run(port=port, debug=debug)
