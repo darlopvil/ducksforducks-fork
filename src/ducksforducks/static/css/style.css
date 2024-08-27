@@ -1,0 +1,23 @@
+.onopen-discussion-panel,
+.article_bottom_suggestion_wrapper,
+.article-meta-author-details-follow-button,
+.three_dot_dropdown,
+#myDropdown {
+    display: none;
+}
+
+a.gfg-link::after {
+    content: " (opens on geeksforgeeks.org)";
+    font-size: 0.8em;
+    color: #888;
+}
+
+a.external-link::after {
+    content: " (external link)";
+    font-size: 0.8em;
+    color: #888;
+}
+
+.text {
+    margin-top: 2em;
+}
