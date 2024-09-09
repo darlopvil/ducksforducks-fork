@@ -28,3 +28,8 @@ pre {
     border-radius: 5px;
     overflow-x: auto;
 }
+
+.gfg-link {
+	width: unset !important;
+	text-overflow: unset !important;
+}
