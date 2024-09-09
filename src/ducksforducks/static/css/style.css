@@ -6,6 +6,24 @@
     display: none;
 }
 
+.text {
+    margin-top: 2em;
+}
+
+/* Code tags */
+pre {
+    background-color: #f4f4f4;
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+/* Links to GFG / external */
+.gfg-link {
+    width: unset !important;
+    text-overflow: unset !important;
+}
+
 a.gfg-link::after {
     content: " (opens on geeksforgeeks.org)";
     font-size: 0.8em;
@@ -18,18 +36,65 @@ a.external-link::after {
     color: #888;
 }
 
-.text {
-    margin-top: 2em;
+/* Article Navigation Links */
+.content-bw {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    background-color: #f9f9f9;
 }
 
-pre {
-    background-color: #f4f4f4;
-    padding: 1em;
-    border-radius: 5px;
-    overflow-x: auto;
+.article-pgnavi_prev,
+.article-pgnavi_next {
+    max-width: 45%;
+    text-align: left;
 }
 
-.gfg-link {
-	width: unset !important;
-	text-overflow: unset !important;
+.pg-head {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    text-decoration: none;
+    color: #007bff;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+.pg-head:hover {
+    color: #0056b3;
+}
+
+.pg-head .gfg-icon {
+    font-size: 16px;
+}
+
+.pg-main a {
+    display: block;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    padding-left: 22px;
+    /* Indent to align with the arrow icon */
+}
+
+.pg-main a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.article-pgnavi_prev .pg-head .gfg-icon_previous {
+    margin-right: 5px;
+}
+
+.article-pgnavi_next .pg-head .gfg-icon_next {
+    margin-left: 5px;
+}
+
+.article-pgnavi_prev .pg-main,
+.article-pgnavi_next .pg-main {
+    margin-top: 10px;
 }
