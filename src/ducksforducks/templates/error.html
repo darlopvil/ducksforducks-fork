@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ code }} - Ducks for Ducks{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-9">
+    <div class="alert alert-danger" role="alert">
+      <h1 class="alert-heading">Error {{ code }}</h1>
+      <p>Sorry, I could not load this GeeksforGeeks page.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
