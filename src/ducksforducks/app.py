@@ -11,6 +11,7 @@ import logging
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 from typing import Text
+from urllib.error import HTTPError, URLError
 
 app = Flask(__name__)
 
@@ -23,10 +24,18 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 # Remove the default Flask logger
-app.logger.removeHandler(app.logger.handlers[0])
+if app.logger.handlers:
+    app.logger.removeHandler(app.logger.handlers[0])
 
 GFG_BASE_URL = "https://www.geeksforgeeks.org/"
 ALLOWED_PROXY_HOSTS = {"media.geeksforgeeks.org", "www.geeksforgeeks.org"}
+# Extensiones que nunca pueden ser un artículo de GFG.
+# Evita salir a la red por peticiones automáticas del navegador o de escáneres.
+NON_ARTICLE_SUFFIXES = (
+    ".ico", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
+    ".css", ".js", ".map", ".json", ".xml", ".txt", ".php",
+    ".env", ".yml", ".yaml", ".sql", ".bak", ".zip",
+)
 
 
 @app.route("/static/<path:path>")
@@ -85,21 +94,51 @@ def article_page(path):
     Returns:
         Text: The rendered article page.
     """
-    with urlopen(build_request(urljoin(GFG_BASE_URL, path))) as response:
-        if response.getcode() == 200:
+    if not is_plausible_article_path(path):
+                return render_template("error.html", code=404), 404
+
+    try:
+        with urlopen(build_request(urljoin(GFG_BASE_URL, path))) as response:
             soup = BeautifulSoup(response.read(), "html.parser")
-            try:
-                content = get_content(soup)
-                title = get_title(soup)
-            except LookupError:
-                logger.exception("Unable to extract article content for %s", path)
-                return render_template("error.html", code=502), 502
-            return render_template("article.html", content=content, title=title)
-        else:
-            return (
-                render_template("error.html", code=response.getcode()),
-                response.getcode(),
-            )
+    except HTTPError as e:
+        logger.warning("GeeksforGeeks returned %s for %s", e.code, path)
+        return render_template("error.html", code=e.code), e.code
+    except URLError:
+        logger.exception("Unable to reach GeeksforGeeks for %s", path)
+        return render_template("error.html", code=502), 502
+
+    try:
+        content = get_content(soup)
+        title = get_title(soup)
+    except LookupError:
+        logger.exception("Unable to extract article content for %s", path)
+        return render_template("error.html", code=502), 502
+
+    return render_template("article.html", content=content, title=title)
+
+def is_plausible_article_path(path: str) -> bool:
+    """Checks whether a path could plausibly be a GeeksforGeeks article.
+
+    Rejects paths that are clearly not articles (static asset extensions,
+    hidden files, scanner probes) so that they never trigger a network
+    request to GeeksforGeeks.
+
+    Args:
+        path (str): The requested path.
+
+    Returns:
+        bool: True if the path could be an article, False otherwise.
+    """
+    lowered = path.lower()
+
+    if lowered.endswith(NON_ARTICLE_SUFFIXES):
+        return False
+
+    # Ficheros y directorios ocultos: .env, .git/config, .vscode/sftp.json...
+    if any(segment.startswith(".") for segment in lowered.split("/")):
+        return False
+
+    return True
 
 
 def get_content(soup: BeautifulSoup) -> BeautifulSoup:
