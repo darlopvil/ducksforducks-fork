@@ -36,6 +36,11 @@ NON_ARTICLE_SUFFIXES = (
     ".css", ".js", ".map", ".json", ".xml", ".txt", ".php",
     ".env", ".yml", ".yaml", ".sql", ".bak", ".zip",
 )
+# Timeout (segundos) para las peticiones salientes a GeeksforGeeks.
+REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", 20))
+
+# Tamaño máximo (bytes) que se acepta al proxear un recurso.
+MAX_PROXY_BYTES = int(os.getenv("MAX_PROXY_BYTES", 10 * 1024 * 1024))
 
 
 @app.route("/static/<path:path>")
@@ -77,9 +82,28 @@ def proxy() -> Response:
 
     logger.debug(f"Proxying {url}")
 
-    with urlopen(build_request(url)) as response:
-        data = response.read()
-        content_type = response.headers.get_content_type()
+    try:
+        with urlopen(build_request(url), timeout=REQUEST_TIMEOUT) as response:
+            declared_length = response.headers.get("Content-Length")
+
+            if declared_length and int(declared_length) > MAX_PROXY_BYTES:
+                logger.warning("Refusing to proxy %s: too large", url)
+                return Response("Resource too large", status=502)
+
+            # Se lee un byte de más para detectar respuestas sin Content-Length
+            # que superen el límite.
+            data = response.read(MAX_PROXY_BYTES + 1)
+            content_type = response.headers.get_content_type()
+    except HTTPError as e:
+        logger.warning("GeeksforGeeks returned %s while proxying %s", e.code, url)
+        return Response("Upstream error", status=e.code)
+    except URLError:
+        logger.exception("Unable to reach GeeksforGeeks while proxying %s", url)
+        return Response("Upstream unreachable", status=502)
+
+    if len(data) > MAX_PROXY_BYTES:
+        logger.warning("Refusing to proxy %s: exceeded size limit", url)
+        return Response("Resource too large", status=502)
 
     return Response(data, content_type=content_type)
 
@@ -98,7 +122,9 @@ def article_page(path):
                 return render_template("error.html", code=404), 404
 
     try:
-        with urlopen(build_request(urljoin(GFG_BASE_URL, path))) as response:
+        with urlopen(
+            build_request(urljoin(GFG_BASE_URL, path)), timeout=REQUEST_TIMEOUT
+        ) as response:
             soup = BeautifulSoup(response.read(), "html.parser")
     except HTTPError as e:
         logger.warning("GeeksforGeeks returned %s for %s", e.code, path)
