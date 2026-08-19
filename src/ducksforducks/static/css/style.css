@@ -134,3 +134,24 @@ article table tbody th {
 article table tbody tr:nth-child(even) td {
     background-color: var(--bs-tertiary-bg);
 }
+
+/* ── #2: Bloques destacados (definiciones, fórmulas) ── */
+article blockquote {
+    margin: 1.5em 0;
+    padding: 1em 1.2em;
+    background-color: var(--bs-secondary-bg);
+    border-left: 4px solid var(--bs-border-color);
+    border-radius: 4px;
+    font-family: "Cambria Math", "Latin Modern Math", Georgia, serif;
+    font-size: 1.15em;
+    line-height: 1.8;
+}
+
+article blockquote strong,
+article blockquote b {
+    font-weight: 600;
+}
+
+article blockquote p:last-child {
+    margin-bottom: 0;
+}
