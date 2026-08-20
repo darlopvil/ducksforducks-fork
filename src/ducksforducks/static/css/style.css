@@ -403,3 +403,18 @@ article a[href*="/problems/"] img {
     margin-right: auto;
     text-align: center;
 }
+
+/* ── #14: Expresiones de complejidad ── */
+article table td.complexity {
+    font-family: "Cambria Math", "Latin Modern Math", Georgia, serif;
+    font-size: 1.1em;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+/* Superíndices y subíndices del artículo */
+article sup,
+article sub {
+    font-size: 0.72em;
+    line-height: 0;
+}

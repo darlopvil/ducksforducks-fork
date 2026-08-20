@@ -15,6 +15,7 @@ from urllib.error import HTTPError, URLError
 import base64
 import zlib
 import json
+import re
 
 app = Flask(__name__)
 
@@ -65,6 +66,12 @@ LANGUAGE_NAMES = {
     "javascript": "JavaScript",
     "php": "PHP",
 }
+
+# Celdas cuyo contenido completo es una expresión de complejidad: O(1),
+# O(N^2), O(N log(N)), O(n*log(log(n)))...
+COMPLEXITY_PATTERN = re.compile(
+    r"^[OΘΩo]\s*\([^)]*\)[\w\s^*+\-/.()]*$", re.IGNORECASE
+)
 
 
 @app.route("/static/<path:path>")
@@ -315,6 +322,27 @@ def transform_carousels(article_content: BeautifulSoup) -> None:
         if wrapper.find("img"):
             carousel.replace_with(wrapper)
 
+def mark_complexity_cells(article_content: BeautifulSoup) -> None:
+    """Tags table cells whose whole content is a complexity expression.
+
+    GeeksforGeeks writes complexity in plain text (`O(N^2)`, `O(log N)`) in
+    otherwise unremarkable table cells, with no class to target. Cells whose
+    entire text matches a complexity expression are marked so they can be
+    styled as mathematical notation.
+
+    Args:
+        article_content (BeautifulSoup): The article content, modified in place.
+    """
+    for cell in article_content.find_all("td"):
+        text = cell.get_text(strip=True).replace("\xa0", " ").strip()
+
+        if not text or len(text) > 40:
+            continue
+
+        if COMPLEXITY_PATTERN.match(text):
+            classes = cell.get("class", [])
+            classes.append("complexity")
+            cell["class"] = classes
 
 def get_content(soup: BeautifulSoup) -> BeautifulSoup:
     """Extracts the article content from the soup.
@@ -356,6 +384,8 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
                 img.attrs.pop(attribute, None)
     transform_code_tabs(article_content)
     transform_carousels(article_content)
+    mark_complexity_cells(article_content)
+    
     for element in article_content.find_all(["script", "style"]):
         element.decompose()
 
