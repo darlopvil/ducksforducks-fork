@@ -236,10 +236,10 @@ article blockquote p:last-child {
     display: block;
 }
 
-/* ── #3: Resaltado de sintaxis (Pygments, colores de GeeksforGeeks) ── */
+/* ── Resaltado de sintaxis: paleta Monokai, la de GeeksforGeeks ── */
 .code-tabs__panel code,
 .code-tabs__panel pre {
-    color: var(--bs-body-color);
+    color: #f8f8f2;
 }
 
 .code-tabs__panel pre {
@@ -252,14 +252,13 @@ article blockquote p:last-child {
 .code-tabs__panel .c1,
 .code-tabs__panel .cm,
 .code-tabs__panel .cs {
-    color: #6a9955;
-    font-style: italic;
+    color: #75715e;
 }
 
 /* Preprocesador */
 .code-tabs__panel .cp,
 .code-tabs__panel .cpf {
-    color: #c586c0;
+    color: #75715e;
 }
 
 /* Palabras clave */
@@ -267,13 +266,19 @@ article blockquote p:last-child {
 .code-tabs__panel .kd,
 .code-tabs__panel .kn,
 .code-tabs__panel .kr,
+.code-tabs__panel .ow {
+    color: #f92672;
+}
+
+/* Constantes del lenguaje: True, False, None, null */
 .code-tabs__panel .kc {
-    color: #569cd6;
+    color: #ae81ff;
 }
 
 /* Tipos */
-.code-tabs__panel .kt {
-    color: #4ec9b0;
+.code-tabs__panel .kt,
+.code-tabs__panel .nc {
+    color: #66d9ef;
 }
 
 /* Cadenas */
@@ -286,7 +291,7 @@ article blockquote p:last-child {
 .code-tabs__panel .se,
 .code-tabs__panel .si,
 .code-tabs__panel .sx {
-    color: #ce9178;
+    color: #e6db74;
 }
 
 /* Números */
@@ -295,35 +300,35 @@ article blockquote p:last-child {
 .code-tabs__panel .mf,
 .code-tabs__panel .mh,
 .code-tabs__panel .mo {
-    color: #b5cea8;
+    color: #ae81ff;
 }
 
-/* Nombres de función y clase */
+/* Nombres de función */
 .code-tabs__panel .nf,
 .code-tabs__panel .fm {
-    color: #dcdcaa;
+    color: #fd971f;
 }
 
-.code-tabs__panel .nc,
-.code-tabs__panel .nn {
-    color: #4ec9b0;
-}
-
-/* Builtins */
+/* Builtins y espacios de nombres */
 .code-tabs__panel .nb,
-.code-tabs__panel .bp {
-    color: #4ec9b0;
+.code-tabs__panel .bp,
+.code-tabs__panel .nn {
+    color: #66d9ef;
+}
+
+/* Atributos y propiedades */
+.code-tabs__panel .na,
+.code-tabs__panel .py {
+    color: #a6e22e;
 }
 
 /* Identificadores, operadores, puntuación y espacios */
 .code-tabs__panel .n,
-.code-tabs__panel .na,
 .code-tabs__panel .nv,
 .code-tabs__panel .o,
-.code-tabs__panel .ow,
 .code-tabs__panel .p,
 .code-tabs__panel .w {
-    color: var(--bs-body-color);
+    color: #f8f8f2;
 }
 
 .code-tabs__bar {
