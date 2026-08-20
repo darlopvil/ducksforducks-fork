@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-
 {% block title %}Error {{ code }} - Ducks for Ducks{% endblock %}
-
 {% block content %}
 <div class="row">
   <div class="col-md-9">
     <div class="alert alert-danger" role="alert">
-      <h1 class="alert-heading">Error {{ code }}</h1>
-      <p>Sorry, I could not load this GeeksforGeeks page.</p>
+      <h4 class="alert-heading">Error {{ code }}</h4>
+      <p>
+        {% if code == 404 %}
+        Esta página no existe en GeeksforGeeks.
+        {% elif code == 403 %}
+        GeeksforGeeks ha denegado el acceso a esta página.
+        {% else %}
+        No se ha podido cargar esta página de GeeksforGeeks.
+        {% endif %}
+      </p>
     </div>
   </div>
 </div>

@@ -1,53 +1,42 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Ducks for Ducks{% endblock %}</title>
-    <link
-      href="{{ url_for('static', filename='dist/css/bootstrap.min.css') }}"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
-        <link
-      rel="icon"
-      type="image/png"
-      href="{{ url_for('static', filename='d4d.jpg') }}"
-    />
-  </head>
-  <body>
-        <nav class="navbar bg-body-tertiary">
-      <div class="container">
-        <a class="navbar-brand" href="{{ url_for('index') }}"
-          >Ducks for Ducks</a
-        >
-      </div>
-    </nav>
-    <div class="container mt-4">{% block content %}{% endblock %}</div>
-        <footer class="footer mt-4 py-3 bg-body-tertiary">
-      <div class="container">
-        <span class="text-muted"
-          >Ducks for Ducks is brought to you by
-          <a href="https://git.private.coffee/PrivateCoffee/ducksforducks"
-            >Private.coffee</a
-          >
-        </span>
-      </div>
-    </footer>
-        <script>
-      document.addEventListener("click", function (e) {
-        var b = e.target.closest(".js-copy");
-        if (!b) return;
-        var pre = b.closest(".code-tabs__panel").querySelector("pre");
-        navigator.clipboard.writeText(pre.innerText).then(function () {
-          var t = b.textContent;
-          b.textContent = "¡Copiado!";
-          setTimeout(function () { b.textContent = t; }, 1500);
-        });
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Ducks for Ducks{% endblock %}</title>
+  <link href="{{ url_for('static', filename='dist/css/bootstrap.min.css') }}" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='d4d.png') }}" />
+</head>
+
+<body>
+  <nav class="navbar bg-body-tertiary">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}">Ducks for Ducks</a>
+    </div>
+  </nav>
+  <div class="container mt-4">{% block content %}{% endblock %}</div>
+  <footer class="footer mt-4 py-3 bg-body-tertiary">
+    <div class="container">
+      <span class="text-body-secondary">Ducks for Ducks — fork de
+        <a href="https://github.com/darlopvil/ducksforducks-fork">darlopvil</a>, sobre el trabajo original de
+        <a href="https://git.private.coffee/PrivateCoffee/ducksforducks">Private.coffee</a>
+      </span>
+    </div>
+  </footer>
+  <script>
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest(".js-copy");
+      if (!b) return;
+      var pre = b.closest(".code-tabs__panel").querySelector("pre");
+      navigator.clipboard.writeText(pre.innerText).then(function () {
+        var t = b.textContent;
+        b.textContent = "¡Copiado!";
+        setTimeout(function () { b.textContent = t; }, 1500);
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
+
 </html>

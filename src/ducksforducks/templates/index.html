@@ -1,17 +1,34 @@
 {% extends "base.html" %}
-
-{% block title %}Ducks for Ducks - Home{% endblock %}
-
+{% block title %}Ducks for Ducks{% endblock %}
 {% block content %}
 <div class="p-4 p-md-5 mb-4 rounded bg-body-tertiary">
-    <h1 class="display-4">Welcome to Ducks for Ducks!</h1>
-    <p class="lead">Ducks for Ducks is a simple proxy service to geeksforgeeks.org</p>
-    <hr class="my-4">
-    <h3>Usage</h3>
-    <p>To use this service, simply replace <code>geeksforgeeks.org</code> with <code>{{ host }}</code> in the site URL, like this:</p>
-    <a href="https://{{ host }}/the-fox-the-duck-and-a-circular-pond/"><code>https://{{ host }}/the-fox-the-duck-and-a-circular-pond/</code></a>
-    <hr class="my-4">
-    <h3>Work in progress</h3>
-    <p>Fetching the content of Geeks for Geeks' home page is still in the works. Also, user profiles and other features are Coming Soon&trade;.</p>
+  <div class="index-hero">
+    <img
+      src="{{ url_for('static', filename='d4d.png') }}"
+      alt="Ducks for Ducks"
+      class="index-hero__logo"
+    />
+    <h1 class="display-4">¡Bienvenido a Ducks for Ducks!</h1>
+  </div>
+  <p class="lead">
+    Ducks for Ducks es un frontend privado para geeksforgeeks.org
+  </p>
+  <hr class="my-4" />
+  <h2>Cómo se usa</h2>
+  <p>
+    Sustituye <code>geeksforgeeks.org</code> por <code>{{ host }}</code> en la
+    URL, por ejemplo:
+  </p>
+  <p>
+    <a href="https://{{ host }}/dsa/bubble-sort-algorithm/"
+      >https://{{ host }}/dsa/bubble-sort-algorithm/</a
+    >
+  </p>
+  <hr class="my-4" />
+  <h2>En construcción</h2>
+  <p>
+    La portada de GeeksforGeeks y los perfiles de usuario todavía no están
+    implementados.
+  </p>
 </div>
 {% endblock %}

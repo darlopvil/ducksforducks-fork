@@ -150,50 +150,6 @@ article blockquote p:last-child {
     flex-wrap: wrap;
     margin: 1.5em 0;
     border: 1px solid var(--bs-border-color);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.code-tabs > input[type="radio"] {
-    display: none;
-}
-
-.code-tabs > label {
-    order: -1;
-    padding: 0.5em 1em;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    background-color: var(--bs-tertiary-bg);
-    border-right: 1px solid var(--bs-border-color);
-    border-bottom: 2px solid transparent;
-}
-
-.code-tabs > label:hover {
-    background-color: var(--bs-secondary-bg);
-}
-
-.code-tabs > input[type="radio"]:checked + label {
-    background-color: var(--bs-body-bg);
-    border-bottom-color: var(--bs-link-color);
-}
-
-.code-tabs__panel {
-    display: none;
-    width: 100%;
-    padding: 0 1em;
-}
-
-.code-tabs > input[type="radio"]:checked + label + .code-tabs__panel {
-    display: block;
-}
-
-/* ── #3: Pestañas de código sin JavaScript ── */
-.code-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 1.5em 0;
-    border: 1px solid var(--bs-border-color);
     border-radius: 6px;
     overflow: hidden;
 }
@@ -423,4 +379,27 @@ article a[href*="/problems/"] img {
     max-width: 100%;
     height: auto;
     border-radius: 6px;
+}
+
+.index-hero {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.index-hero__logo {
+    width: 4rem;
+    height: 4rem;
+}
+
+.index-hero h1 {
+    margin: 0;
+}
+
+.footer .container {
+    max-width: 1140px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
 }

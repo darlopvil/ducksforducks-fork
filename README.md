@@ -1,5 +1,7 @@
 # Ducks for Ducks
 
+<img src="src/ducksforducks/static/d4d.png" alt="Ducks for Ducks" width="96" />
+
 Un frontend respetuoso con la privacidad para GeeksforGeeks.
 
 Este es un fork de [PrivateCoffee/ducksforducks](https://git.private.coffee/PrivateCoffee/ducksforducks)
