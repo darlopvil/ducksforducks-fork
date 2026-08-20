@@ -12,6 +12,9 @@ from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 from typing import Text
 from urllib.error import HTTPError, URLError
+import base64
+import zlib
+import json
 
 app = Flask(__name__)
 
@@ -36,11 +39,32 @@ NON_ARTICLE_SUFFIXES = (
     ".css", ".js", ".map", ".json", ".xml", ".txt", ".php",
     ".env", ".yml", ".yaml", ".sql", ".bak", ".zip",
 )
-# Timeout (segundos) para las peticiones salientes a GeeksforGeeks.
-REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", 20))
+REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "20"))
+MAX_PROXY_BYTES = int(os.getenv("MAX_PROXY_BYTES", str(10 * 1024 * 1024)))
 
-# Tamaño máximo (bytes) que se acepta al proxear un recurso.
-MAX_PROXY_BYTES = int(os.getenv("MAX_PROXY_BYTES", 10 * 1024 * 1024))
+# Identificadores de lenguaje en tio.run, por data-code-lang de GFG.
+TIO_LANGUAGES = {
+    "python": "python3",
+    "python3": "python3",
+    "c": "c-gcc",
+    "cpp": "cpp-gcc",
+    "java": "java-openjdk",
+    "javascript": "javascript-node",
+    "php": "php",
+    "csharp": "cs-core",
+}
+
+# Nombres legibles por clave de lenguaje de GFG.
+LANGUAGE_NAMES = {
+    "c": "C",
+    "cpp": "C++",
+    "java": "Java",
+    "python3": "Python",
+    "python": "Python",
+    "csharp": "C#",
+    "javascript": "JavaScript",
+    "php": "PHP",
+}
 
 
 @app.route("/static/<path:path>")
@@ -119,7 +143,7 @@ def article_page(path):
         Text: The rendered article page.
     """
     if not is_plausible_article_path(path):
-                return render_template("error.html", code=404), 404
+        return render_template("error.html", code=404), 404
 
     try:
         with urlopen(
@@ -166,6 +190,91 @@ def is_plausible_article_path(path: str) -> bool:
 
     return True
 
+def transform_code_tabs(article_content: BeautifulSoup) -> None:
+    """Rewrites GeeksforGeeks code tab widgets as JavaScript-free tabs.
+
+    GFG groups multi-language code samples in <gfg-tabs>, alternating
+    <gfg-tab> labels with <gfg-panel> contents, and switches between them
+    with JavaScript that get_content() strips. This rebuilds each group
+    using the radio-input pattern so tabs keep working without scripts.
+
+    Args:
+        article_content (BeautifulSoup): The article content, modified in place.
+    """
+    soup = BeautifulSoup("", "html.parser")
+
+    for index, tabs in enumerate(article_content.find_all("gfg-tabs")):
+        labels = tabs.find_all("gfg-tab", recursive=False)
+        panels = tabs.find_all("gfg-panel", recursive=False)
+
+        if not panels:
+            continue
+
+        group = f"codetabs-{index}"
+        wrapper = soup.new_tag("div", attrs={"class": "code-tabs"})
+
+        for position, panel in enumerate(panels):
+            radio_id = f"{group}-{position}"
+
+            radio = soup.new_tag(
+                "input",
+                attrs={"type": "radio", "name": group, "id": radio_id},
+            )
+
+            if position == 0:
+                radio["checked"] = "checked"
+
+            label = soup.new_tag("label", attrs={"for": radio_id})
+
+            if position < len(labels):
+                label.string = labels[position].get_text(strip=True)
+            else:
+                label.string = panel.get("data-code-lang", "code")
+
+            body = soup.new_tag("div", attrs={"class": "code-tabs__panel"})
+
+            for child in list(panel.contents):
+                body.append(child.extract())
+
+            code_el = body.find("pre")
+            tio_url = None
+
+            if code_el:
+                tio_url = build_tio_url(
+                    panel.get("data-code-lang", ""), code_el.get_text()
+                )
+
+            toolbar = soup.new_tag("div", attrs={"class": "code-tabs__bar"})
+
+            copy_btn = soup.new_tag(
+                "button",
+                attrs={
+                    "type": "button",
+                    "class": "code-tabs__btn js-copy",
+                    "title": "Copiar código",
+                },
+            )
+            copy_btn.string = "Copiar"
+            toolbar.append(copy_btn)
+
+            if tio_url:
+                run = soup.new_tag(
+                    "a",
+                    href=tio_url,
+                    target="_blank",
+                    rel="noopener noreferrer",
+                    attrs={"class": "code-tabs__btn", "title": "Ejecutar en TIO"},
+                )
+                run.string = "▶ Ejecutar"
+                toolbar.append(run)
+
+            body.insert(0, toolbar)
+
+            wrapper.append(radio)
+            wrapper.append(label)
+            wrapper.append(body)
+
+        tabs.replace_with(wrapper)
 
 def get_content(soup: BeautifulSoup) -> BeautifulSoup:
     """Extracts the article content from the soup.
@@ -205,7 +314,7 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
                 "data-lazy-srcset",
             ):
                 img.attrs.pop(attribute, None)
-
+    transform_code_tabs(article_content)
     for element in article_content.find_all(["script", "style"]):
         element.decompose()
 
@@ -232,6 +341,19 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
 
     return article_content
 
+def is_practice_url(url: str) -> bool:
+    """Checks whether a URL points to the GeeksforGeeks practice IDE.
+
+    These pages are not articles and cannot be rendered by this frontend,
+    so they are kept pointing at GeeksforGeeks.
+
+    Args:
+        url (str): The URL to check.
+
+    Returns:
+        bool: True if the URL points to the practice IDE, False otherwise.
+    """
+    return urlparse(url).path.startswith("/problems/")
 
 def get_title(soup: BeautifulSoup) -> str:
     """Extracts the article title from the soup.
@@ -360,11 +482,124 @@ def build_proxy_url(url: str) -> str:
     """
     return f"/proxy?{urlencode({'url': url})}"
 
+def build_tio_url(language: str, code: str) -> str | None:
+    """Builds a tio.run permalink carrying the language and source code.
+
+    Args:
+        language (str): The GFG data-code-lang value.
+        code (str): The source code.
+
+    Returns:
+        str | None: The permalink, or None if the language is unsupported.
+    """
+    tio_language = TIO_LANGUAGES.get(language)
+
+    if not tio_language:
+        return None
+
+    payload = (
+        tio_language.encode() + b"\xff\xff" + code.encode("utf-8") + b"\xff\xff"
+    )
+
+    compressor = zlib.compressobj(9, zlib.DEFLATED, -15)
+    compressed = compressor.compress(payload) + compressor.flush()
+    encoded = base64.b64encode(compressed).decode().replace("+", "@").rstrip("=")
+
+    return f"https://tio.run/##{encoded}"
+
+@app.route("/problems/<slug>/<int:number>")
+def problem_page(slug: str, number: int):
+    """Renders a GeeksforGeeks practice problem with an embedded editor.
+
+    Args:
+        slug (str): The problem slug.
+        number (int): The problem number.
+
+    Returns:
+        Text: The rendered problem page.
+    """
+    url = urljoin(GFG_BASE_URL, f"problems/{slug}/{number}")
+
+    try:
+        with urlopen(build_request(url), timeout=REQUEST_TIMEOUT) as response:
+            soup = BeautifulSoup(response.read(), "html.parser")
+    except HTTPError as e:
+        return render_template("error.html", code=e.code), e.code
+    except URLError:
+        logger.exception("Unable to reach GeeksforGeeks for %s", url)
+        return render_template("error.html", code=502), 502
+
+    try:
+        problem = get_problem_data(soup)
+    except LookupError:
+        logger.exception("Unable to extract problem data for %s", slug)
+        return render_template("error.html", code=502), 502
+
+    functions = problem.get("extra", {}).get("initial_user_func", {})
+    solutions = []
+
+    for language in functions:
+        code = build_problem_code(functions, language)
+        solutions.append(
+            {
+                "language": language,
+                "name": LANGUAGE_NAMES.get(language, language.title()),
+                "code": code,
+                "tio_url": build_tio_url(language, code),
+            }
+        )
+
+    return render_template(
+        "problem.html",
+        title=problem.get("problem_name", slug.replace("-", " ").title()),
+        question=problem.get("problem_question", ""),
+        difficulty=problem.get("difficulty"),
+        solutions=solutions,
+    )
+
+
+def get_problem_data(soup: BeautifulSoup) -> dict:
+    """Extracts the practice problem payload from the page's __NEXT_DATA__.
+
+    Args:
+        soup (BeautifulSoup): The soup of the problem page.
+
+    Returns:
+        dict: The problem data.
+    """
+    script = soup.find("script", id="__NEXT_DATA__")
+
+    if script is None or not script.string:
+        raise LookupError("Unable to find __NEXT_DATA__")
+
+    try:
+        state = json.loads(script.string)["props"]["pageProps"]["initialState"]
+        return state["problemData"]["allData"]["probData"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise LookupError("Unable to find problem data") from exc
+
+
+def build_problem_code(functions: dict, language: str) -> str:
+    """Returns the user-facing skeleton for a practice problem.
+
+    GFG splits each problem into `initial_code` (a hidden driver that reads
+    input and prints results) and `user_code` (the skeleton the user fills
+    in). Only the latter is shown, matching GFG's own editor.
+
+    Args:
+        functions (dict): The initial_user_func mapping.
+        language (str): The language key.
+
+    Returns:
+        str: The skeleton to pre-load in the editor.
+    """
+    entry = functions.get(language) or {}
+    return entry.get("user_code", "")
 
 def main():
     """Runs the app."""
-    port = int(os.getenv("PORT", 8113))
-    debug = bool(os.getenv("DEBUG", False))
+    port = int(os.getenv("PORT", "8113"))
+    debug = os.getenv("DEBUG", "").lower() in ("1", "true", "yes")
     app.run(port=port, debug=debug)
 
 

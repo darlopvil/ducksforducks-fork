@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Ducks for Ducks{% endblock %}
+{% block content %}
+<div class="problem">
+  <div class="problem__statement">
+    <h1>{{ title }}</h1>
+    {% if difficulty %}<p><strong>Dificultad:</strong> {{ difficulty }}</p>{% endif %}
+    {{ question | safe }}
+  </div>
+  <div class="problem__editor">
+    <div class="code-tabs">
+      {% for s in solutions %}
+      <input type="radio" name="problang" id="pl-{{ loop.index0 }}"
+             {% if loop.first %}checked{% endif %} />
+        <label for="pl-{{ loop.index0 }}">{{ s.name }}</label>
+      <div class="code-tabs__panel">
+        {% if s.tio_url %}
+        <iframe src="{{ s.tio_url }}" class="problem__iframe"
+                title="Editor {{ s.language }}"></iframe>
+        {% else %}
+        <pre>{{ s.code }}</pre>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

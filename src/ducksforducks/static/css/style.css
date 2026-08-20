@@ -29,18 +29,6 @@ pre {
     text-overflow: unset !important;
 }
 
-a.gfg-link::after {
-    content: " (opens on geeksforgeeks.org)";
-    font-size: 0.8em;
-    color: var(--bs-secondary-color);
-}
-
-a.external-link::after {
-    content: " (external link)";
-    font-size: 0.8em;
-    color: var(--bs-secondary-color);
-}
-
 /* Article Navigation Links */
 .content-bw {
     display: flex;
@@ -154,4 +142,262 @@ article blockquote b {
 
 article blockquote p:last-child {
     margin-bottom: 0;
+}
+
+/* ── #3: Pestañas de código sin JavaScript ── */
+.code-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1.5em 0;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.code-tabs > input[type="radio"] {
+    display: none;
+}
+
+.code-tabs > label {
+    order: -1;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    background-color: var(--bs-tertiary-bg);
+    border-right: 1px solid var(--bs-border-color);
+    border-bottom: 2px solid transparent;
+}
+
+.code-tabs > label:hover {
+    background-color: var(--bs-secondary-bg);
+}
+
+.code-tabs > input[type="radio"]:checked + label {
+    background-color: var(--bs-body-bg);
+    border-bottom-color: var(--bs-link-color);
+}
+
+.code-tabs__panel {
+    display: none;
+    width: 100%;
+    padding: 0 1em;
+}
+
+.code-tabs > input[type="radio"]:checked + label + .code-tabs__panel {
+    display: block;
+}
+
+/* ── #3: Pestañas de código sin JavaScript ── */
+.code-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1.5em 0;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.code-tabs > input[type="radio"] {
+    display: none;
+}
+
+.code-tabs > label {
+    order: -1;
+    padding: 0.6em 1.1em;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #2f8d46;
+    background-color: var(--bs-tertiary-bg);
+    border-right: 1px solid var(--bs-border-color);
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.code-tabs > label:hover {
+    color: #3fbb5e;
+    background-color: var(--bs-secondary-bg);
+}
+
+.code-tabs > input[type="radio"]:checked + label {
+    color: #f26a1b;
+    background-color: var(--bs-body-bg);
+    border-bottom-color: #f26a1b;
+}
+
+.code-tabs__panel {
+    display: none;
+    width: 100%;
+    padding: 0 1em;
+}
+
+.code-tabs > input[type="radio"]:checked + label + .code-tabs__panel {
+    display: block;
+}
+
+/* ── #3: Resaltado de sintaxis (Pygments, colores de GeeksforGeeks) ── */
+.code-tabs__panel code,
+.code-tabs__panel pre {
+    color: var(--bs-body-color);
+}
+
+.code-tabs__panel pre {
+    background-color: transparent;
+    padding: 1em 0;
+}
+
+/* Comentarios */
+.code-tabs__panel .c,
+.code-tabs__panel .c1,
+.code-tabs__panel .cm,
+.code-tabs__panel .cs {
+    color: #6a9955;
+    font-style: italic;
+}
+
+/* Preprocesador */
+.code-tabs__panel .cp,
+.code-tabs__panel .cpf {
+    color: #c586c0;
+}
+
+/* Palabras clave */
+.code-tabs__panel .k,
+.code-tabs__panel .kd,
+.code-tabs__panel .kn,
+.code-tabs__panel .kr,
+.code-tabs__panel .kc {
+    color: #569cd6;
+}
+
+/* Tipos */
+.code-tabs__panel .kt {
+    color: #4ec9b0;
+}
+
+/* Cadenas */
+.code-tabs__panel .s,
+.code-tabs__panel .s1,
+.code-tabs__panel .s2,
+.code-tabs__panel .sb,
+.code-tabs__panel .sc,
+.code-tabs__panel .sd,
+.code-tabs__panel .se,
+.code-tabs__panel .si,
+.code-tabs__panel .sx {
+    color: #ce9178;
+}
+
+/* Números */
+.code-tabs__panel .m,
+.code-tabs__panel .mi,
+.code-tabs__panel .mf,
+.code-tabs__panel .mh,
+.code-tabs__panel .mo {
+    color: #b5cea8;
+}
+
+/* Nombres de función y clase */
+.code-tabs__panel .nf,
+.code-tabs__panel .fm {
+    color: #dcdcaa;
+}
+
+.code-tabs__panel .nc,
+.code-tabs__panel .nn {
+    color: #4ec9b0;
+}
+
+/* Builtins */
+.code-tabs__panel .nb,
+.code-tabs__panel .bp {
+    color: #4ec9b0;
+}
+
+/* Identificadores, operadores, puntuación y espacios */
+.code-tabs__panel .n,
+.code-tabs__panel .na,
+.code-tabs__panel .nv,
+.code-tabs__panel .o,
+.code-tabs__panel .ow,
+.code-tabs__panel .p,
+.code-tabs__panel .w {
+    color: var(--bs-body-color);
+}
+
+.code-tabs__bar {
+    display: flex;
+    gap: 0.5em;
+    justify-content: flex-end;
+    padding: 0.6em 0 0.2em;
+}
+
+.code-tabs__btn {
+    padding: 0.35em 0.9em;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2f8d46;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.code-tabs__btn:hover {
+    background-color: #3fbb5e;
+    color: #fff;
+}
+
+/* ── #5: Banner "Try It Yourself" ── */
+article a[href*="/problems/"] {
+    display: block !important;
+    margin: 1.5em 0;
+    background-color: #2f8d46;
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.15s ease;
+}
+
+
+article a[href*="/problems/"] > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.9em 1.5em;
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #fff;
+}
+
+article a[href*="/problems/"] > div > div {
+    display: flex;
+    align-items: center;
+}
+
+article a[href*="/problems/"] img {
+    width: 0.8em;
+    height: 0.8em;
+    filter: brightness(0) invert(1);
+}
+
+.problem {
+    display: block;
+}
+
+.problem__statement {
+    margin-bottom: 2em;
+}
+
+.problem__iframe {
+    width: 100%;
+    height: 75vh;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+}
+
+.problem .code-tabs__panel {
+    padding: 0;
 }
