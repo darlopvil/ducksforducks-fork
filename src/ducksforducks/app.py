@@ -276,6 +276,46 @@ def transform_code_tabs(article_content: BeautifulSoup) -> None:
 
         tabs.replace_with(wrapper)
 
+def transform_carousels(article_content: BeautifulSoup) -> None:
+    """Rewrites GeeksforGeeks image carousels as plain image lists.
+
+    GFG stores each slide as a <gfg-carousel-content> custom element carrying
+    the image URL in a `src` attribute. Since these are not <img> tags, they
+    are ignored by the image proxying pass and the images are lost entirely.
+    Each carousel is replaced by a vertical list of proxied images.
+
+    Args:
+        article_content (BeautifulSoup): The article content, modified in place.
+    """
+    soup = BeautifulSoup("", "html.parser")
+
+    for carousel in article_content.find_all("gfg-carousel"):
+        wrapper = soup.new_tag("div", attrs={"class": "carousel"})
+
+        for index, slide in enumerate(
+            carousel.find_all("gfg-carousel-content"), start=1
+        ):
+            image_url = normalize_url(slide.get("src"))
+
+            if not image_url or not is_allowed_proxy_url(image_url):
+                continue
+
+            figure = soup.new_tag("figure", attrs={"class": "carousel__item"})
+            image = soup.new_tag("img", src=build_proxy_url(image_url))
+            image["alt"] = slide.get("alt", f"Paso {index}")
+            image["loading"] = "lazy"
+
+            for attribute in ("width", "height"):
+                if slide.get(attribute):
+                    image[attribute] = slide[attribute]
+
+            figure.append(image)
+            wrapper.append(figure)
+
+        if wrapper.find("img"):
+            carousel.replace_with(wrapper)
+
+
 def get_content(soup: BeautifulSoup) -> BeautifulSoup:
     """Extracts the article content from the soup.
 
@@ -315,6 +355,7 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
             ):
                 img.attrs.pop(attribute, None)
     transform_code_tabs(article_content)
+    transform_carousels(article_content)
     for element in article_content.find_all(["script", "style"]):
         element.decompose()
 
