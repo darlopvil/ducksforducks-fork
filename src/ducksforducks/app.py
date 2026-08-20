@@ -482,12 +482,24 @@ def build_proxy_url(url: str) -> str:
     """
     return f"/proxy?{urlencode({'url': url})}"
 
-def build_tio_url(language: str, code: str) -> str | None:
+def build_tio_url(
+    language: str, code: str, header: str = "", footer: str = ""
+) -> str | None:
     """Builds a tio.run permalink carrying the language and source code.
+
+    The payload is a raw-deflate stream of the fields
+    `<language>\\xff<header>\\xff<code>\\xff<footer>\\xff`, base64-encoded with
+    '+' replaced by '@' and padding stripped. It lives in the URL fragment,
+    so it is never sent to tio.run's server.
+
+    Header and footer are shown collapsed in tio.run, which makes them a good
+    place for driver code the user should not edit.
 
     Args:
         language (str): The GFG data-code-lang value.
-        code (str): The source code.
+        code (str): The source code shown in the editor.
+        header (str): Optional code prepended before the editor content.
+        footer (str): Optional code appended after the editor content.
 
     Returns:
         str | None: The permalink, or None if the language is unsupported.
@@ -498,7 +510,11 @@ def build_tio_url(language: str, code: str) -> str | None:
         return None
 
     payload = (
-        tio_language.encode() + b"\xff\xff" + code.encode("utf-8") + b"\xff\xff"
+        b"\xff".join(
+            field.encode("utf-8")
+            for field in (tio_language, header, code, footer)
+        )
+        + b"\xff"
     )
 
     compressor = zlib.compressobj(9, zlib.DEFLATED, -15)
@@ -506,6 +522,7 @@ def build_tio_url(language: str, code: str) -> str | None:
     encoded = base64.b64encode(compressed).decode().replace("+", "@").rstrip("=")
 
     return f"https://tio.run/##{encoded}"
+
 
 @app.route("/problems/<slug>/<int:number>")
 def problem_page(slug: str, number: int):
@@ -539,13 +556,13 @@ def problem_page(slug: str, number: int):
     solutions = []
 
     for language in functions:
-        code = build_problem_code(functions, language)
+        code, header, footer = build_problem_code(functions, language)
         solutions.append(
             {
                 "language": language,
                 "name": LANGUAGE_NAMES.get(language, language.title()),
                 "code": code,
-                "tio_url": build_tio_url(language, code),
+                "tio_url": build_tio_url(language, code, header, footer),
             }
         )
 
@@ -579,22 +596,56 @@ def get_problem_data(soup: BeautifulSoup) -> dict:
         raise LookupError("Unable to find problem data") from exc
 
 
-def build_problem_code(functions: dict, language: str) -> str:
-    """Returns the user-facing skeleton for a practice problem.
+def build_problem_code(functions: dict, language: str) -> tuple[str, str, str]:
+    """Splits a practice problem into editor content, header and footer.
 
-    GFG splits each problem into `initial_code` (a hidden driver that reads
-    input and prints results) and `user_code` (the skeleton the user fills
-    in). Only the latter is shown, matching GFG's own editor.
+    GFG divides each problem into `user_code` (the skeleton the user fills in)
+    and `initial_code` (a hidden driver that reads input, calls the user's
+    function and prints the result), joined at a marker line. Here the driver
+    is split at that marker so it can be placed in tio.run's collapsed header
+    and footer fields, leaving the editor showing only the skeleton.
 
     Args:
         functions (dict): The initial_user_func mapping.
         language (str): The language key.
 
     Returns:
-        str: The skeleton to pre-load in the editor.
+        tuple[str, str, str]: The skeleton, the header and the footer.
     """
     entry = functions.get(language) or {}
-    return entry.get("user_code", "")
+    user = entry.get("user_code", "")
+    initial = entry.get("initial_code", "")
+
+    if not initial:
+        return user, "", ""
+
+    lines = initial.splitlines()
+
+    for position, line in enumerate(lines):
+        if "user code will be pasted" in line.lower():
+            header = "\n".join(lines[:position])
+            footer = "\n".join(lines[position + 1 :])
+            return user, header, footer
+
+    # Sin marcador, se separan las directivas de cabecera (imports, includes),
+    # que deben preceder al código del usuario, del resto del driver.
+    header_lines = []
+    footer_lines = []
+    in_header = True
+
+    for line in lines:
+        stripped = line.strip()
+
+        if in_header and (
+            not stripped
+            or stripped.startswith(("#include", "#define", "import ", "using "))
+        ):
+            header_lines.append(line)
+        else:
+            in_header = False
+            footer_lines.append(line)
+
+    return user, "\n".join(header_lines), "\n".join(footer_lines)
 
 def main():
     """Runs the app."""
