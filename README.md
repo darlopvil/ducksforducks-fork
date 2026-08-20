@@ -81,8 +81,6 @@ python -m ducksforducks.app
 
 ## Limitaciones conocidas
 
-- La portada de GeeksforGeeks y los perfiles de usuario no están
-  implementados
 - tio.run despliega automáticamente las secciones Header y Footer, por lo que
   el driver del problema queda visible en el editor empotrado
 - Las expresiones de complejidad se muestran como texto plano, igual que en
