@@ -1,32 +1,33 @@
 # Ducks for Ducks
 
-A privacy-friendly frontend for GeeksforGeeks.
+Un frontend respetuoso con la privacidad para GeeksforGeeks.
 
-This is a fork of [PrivateCoffee/ducksforducks](https://git.private.coffee/PrivateCoffee/ducksforducks)
-with additional fixes and features. See [Differences from upstream](#differences-from-upstream).
+Este es un fork de [PrivateCoffee/ducksforducks](https://git.private.coffee/PrivateCoffee/ducksforducks)
+con correcciones y funcionalidades añadidas. Ver [Diferencias con upstream](#diferencias-con-upstream).
 
-## Usage
+## Uso
 
-Replace `geeksforgeeks.org` with your instance's domain in any article URL:
+Sustituye `geeksforgeeks.org` por el dominio de tu instancia en la URL de
+cualquier artículo:
 
 ```
 https://www.geeksforgeeks.org/dsa/bubble-sort-algorithm/
-https://your-instance.example/dsa/bubble-sort-algorithm/
+https://tu-instancia.example/dsa/bubble-sort-algorithm/
 ```
 
-Images are proxied through the instance, so your browser never contacts
-GeeksforGeeks.
+Las imágenes se sirven a través de la instancia, de modo que el navegador
+nunca contacta con GeeksforGeeks.
 
-## Configuration
+## Configuración
 
-| Variable | Default | Description |
+| Variable | Por defecto | Descripción |
 |---|---|---|
-| `PORT` | `8113` | Port the development server listens on |
-| `DEBUG` | unset | Enables Flask's debugger. Accepts `1`, `true`, `yes`, `on` |
-| `REQUEST_TIMEOUT` | `20` | Timeout in seconds for outbound requests |
-| `MAX_PROXY_BYTES` | `10485760` | Maximum size in bytes accepted when proxying a resource |
+| `PORT` | `8113` | Puerto en el que escucha el servidor de desarrollo |
+| `DEBUG` | sin definir | Activa el depurador de Flask. Acepta `1`, `true`, `yes`, `on` |
+| `REQUEST_TIMEOUT` | `20` | Tiempo máximo en segundos para las peticiones salientes |
+| `MAX_PROXY_BYTES` | `10485760` | Tamaño máximo en bytes al proxear un recurso |
 
-## Running with Docker
+## Despliegue con Docker
 
 ```bash
 docker compose up -d --build
@@ -44,47 +45,49 @@ services:
       - "8113:8113"
 ```
 
-The image runs the application with gunicorn. `main()` and the `PORT`
-variable only apply when running the development server directly.
+La imagen sirve la aplicación con gunicorn. `main()` y la variable `PORT`
+solo se aplican al arrancar el servidor de desarrollo directamente.
 
-## Running from source
+## Ejecución desde el código
 
 ```bash
 pip install .
 ducksforducks
 ```
 
-Or, for development:
+O, para desarrollo:
 
 ```bash
 python -m ducksforducks.app
 ```
 
-## Differences from upstream
+## Diferencias con upstream
 
-- Code samples in multiple languages are rebuilt as JavaScript-free tabs
-  instead of being stacked one after another
-- Syntax highlighting using the Monokai palette, matching GeeksforGeeks
-- "Copy" and "Run on tio.run" buttons on every code block
-- Practice problems (`/problems/<slug>/<n>`) are rendered by the instance,
-  with an embedded tio.run editor per language
-- Image carousels are recovered as vertical image lists
-- Dark theme, on Bootstrap 5.3
-- Styled tables and blockquotes
-- Requests for paths that cannot be articles (`/favicon.ico`, `/.env`,
-  scanner probes) are rejected without hitting GeeksforGeeks
-- Timeouts and a size limit on outbound requests
+- Los bloques de código en varios lenguajes se reconstruyen como pestañas sin
+  JavaScript, en lugar de mostrarse apilados
+- Resaltado de sintaxis con la paleta Monokai, la misma que usa GeeksforGeeks
+- Botones "Copiar" y "Ejecutar en tio.run" en cada bloque de código
+- Las páginas de práctica (`/problems/<slug>/<n>`) las sirve la propia
+  instancia, con un editor de tio.run empotrado por lenguaje
+- Los carruseles de imágenes se recuperan como listas verticales
+- Tema oscuro, sobre Bootstrap 5.3
+- Tablas y bloques destacados con estilo
+- Las rutas que no pueden ser artículos (`/favicon.ico`, `/.env`, sondas de
+  escáneres) se rechazan sin llegar a consultar GeeksforGeeks
+- Timeouts y límite de tamaño en las peticiones salientes
 - Dockerfile
 
-## Known limitations
+## Limitaciones conocidas
 
-- The GeeksforGeeks home page and user profiles are not implemented
-- tio.run expands its Header and Footer sections automatically, so the
-  problem driver is visible in the embedded editor
-- Complexity expressions are shown as plain text, as on GeeksforGeeks
+- La portada de GeeksforGeeks y los perfiles de usuario no están
+  implementados
+- tio.run despliega automáticamente las secciones Header y Footer, por lo que
+  el driver del problema queda visible en el editor empotrado
+- Las expresiones de complejidad se muestran como texto plano, igual que en
+  GeeksforGeeks
 
-## License
+## Licencia
 
-MIT. See [LICENSE](LICENSE).
+MIT. Ver [LICENSE](LICENSE).
 
-Original work by the [Private.coffee](https://private.coffee) Team.
+Obra original del equipo de [Private.coffee](https://private.coffee).
