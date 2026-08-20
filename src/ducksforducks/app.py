@@ -691,7 +691,7 @@ def build_problem_code(functions: dict, language: str) -> tuple[str, str, str]:
 def main():
     """Runs the app."""
     port = int(os.getenv("PORT", "8113"))
-    debug = os.getenv("DEBUG", "").lower() in ("1", "true", "yes")
+    debug = os.getenv("DEBUG", "").strip().lower() in ("1", "true", "yes", "on")
     app.run(port=port, debug=debug)
 
 
