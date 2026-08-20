@@ -73,6 +73,12 @@ COMPLEXITY_PATTERN = re.compile(
     r"^[OΘΩo]\s*\([^)]*\)[\w\s^*+\-/.()]*$", re.IGNORECASE
 )
 
+# Superíndices y subíndices Unicode para reescribir exponentes.
+SUPERSCRIPTS = str.maketrans(
+    "0123456789+-nkmib", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿᵏᵐⁱᵇ"
+)
+SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
 
 @app.route("/static/<path:path>")
 def static_files(path: str) -> Response:
@@ -323,12 +329,16 @@ def transform_carousels(article_content: BeautifulSoup) -> None:
             carousel.replace_with(wrapper)
 
 def mark_complexity_cells(article_content: BeautifulSoup) -> None:
-    """Tags table cells whose whole content is a complexity expression.
+    """Tags and rewrites table cells holding complexity expressions.
 
     GeeksforGeeks writes complexity in plain text (`O(N^2)`, `O(log N)`) in
     otherwise unremarkable table cells, with no class to target. Cells whose
     entire text matches a complexity expression are marked so they can be
-    styled as mathematical notation.
+    styled as mathematical notation, and their carets are rewritten as real
+    Unicode superscripts.
+
+    The rewrite is confined to already-matched cells, so it can never touch
+    source code, where `^` is the XOR operator.
 
     Args:
         article_content (BeautifulSoup): The article content, modified in place.
@@ -339,11 +349,43 @@ def mark_complexity_cells(article_content: BeautifulSoup) -> None:
         if not text or len(text) > 40:
             continue
 
-        if COMPLEXITY_PATTERN.match(text):
-            classes = cell.get("class", [])
-            classes.append("complexity")
-            cell["class"] = classes
+        if not COMPLEXITY_PATTERN.match(text):
+            continue
 
+        classes = cell.get("class", [])
+        classes.append("complexity")
+        cell["class"] = classes
+
+        rewritten = rewrite_complexity(text)
+
+        if rewritten != text:
+            cell.clear()
+            cell.append(rewritten)
+
+
+def rewrite_complexity(text: str) -> str:
+    """Rewrites caret exponents as Unicode superscripts.
+
+    Turns `O(N^2)` into `O(N²)` and `n0` into `n₀`. Only ever applied to text
+    already identified as a complexity expression.
+
+    Args:
+        text (str): The complexity expression.
+
+    Returns:
+        str: The rewritten expression.
+    """
+    text = re.sub(
+        r"\^([0-9a-zA-Z+\-]+)",
+        lambda m: m.group(1).translate(SUPERSCRIPTS),
+        text,
+    )
+
+    return re.sub(
+        r"\b([nNkbm])([0-9])\b",
+        lambda m: m.group(1) + m.group(2).translate(SUBSCRIPTS),
+        text,
+    )
 def get_content(soup: BeautifulSoup) -> BeautifulSoup:
     """Extracts the article content from the soup.
 
@@ -385,7 +427,7 @@ def get_content(soup: BeautifulSoup) -> BeautifulSoup:
     transform_code_tabs(article_content)
     transform_carousels(article_content)
     mark_complexity_cells(article_content)
-    
+
     for element in article_content.find_all(["script", "style"]):
         element.decompose()
 
